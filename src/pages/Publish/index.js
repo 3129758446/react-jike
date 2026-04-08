@@ -11,27 +11,22 @@ import {
     message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
-import { useEffect,  useState } from 'react'
-import { getChannelAPI,createArticleAPI } from '@/apis/article'
+import {  useState } from 'react'
+import { createArticleAPI } from '@/apis/article'
+import { useChannel } from '@/hooks/useChannel'
 
 const { Option } = Select
 
 const Publish = () => {
 
+
     // 1.获取频道列表
-    const [channels, setChannels] = useState([])
-    useEffect(() => {
-        async function fetchChannels() {
-            const res = await getChannelAPI()
-            setChannels(res.data.channels)
-            // console.log(res.data.channels)
-        }
-        fetchChannels()
-    }, [])
+    const { channelList } = useChannel()
+    const navigate = useNavigate()
 
     // 2.发布文章
     const onFinish = async (formValue) => {
@@ -55,6 +50,7 @@ const Publish = () => {
         }
         await createArticleAPI(data)
         message.success('发布文章成功')
+        navigate('/article')
     }
    
     
@@ -102,7 +98,7 @@ const Publish = () => {
                         rules={[{ required: true, message: '请选择文章频道' }]}
                     >
                         <Select placeholder="请选择文章频道" style={{ width: 400 }}>
-                            {channels.map(item =>{
+                            {channelList.map(item =>{
                                 return <Option key={item.id} value={item.id}>{item.name}</Option>
                             })}
                         </Select>
@@ -116,9 +112,9 @@ const Publish = () => {
                             </Radio.Group>
                         </Form.Item>
                         {/* 
-              listType:上传列表的外框样式 
-              showUploadList:是否显示上传列表
-             */}
+                        listType:上传列表的外框样式 
+                        showUploadList:是否显示上传列表
+                        */}
                         {imageType > 0 && <Upload
                             listType="picture-card"
                             showUploadList

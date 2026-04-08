@@ -13,3 +13,18 @@ export const createArticleAPI = (data) =>
         url: '/mp/articles?draft=false',
         data
     })
+
+// 获取文章列表
+export const getArticleListAPI = (params) =>
+    request({
+        url: '/mp/articles',
+        params
+    })
+    
+//删除文章接口函数
+export const deleteArticleAPI = (id) => {
+    return request({
+        url: `/mp/articles/${id}`,
+        method: 'delete'
+    })
+}
