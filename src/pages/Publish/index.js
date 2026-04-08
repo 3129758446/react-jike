@@ -11,12 +11,12 @@ import {
     message
 } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate,useSearchParams } from 'react-router-dom'
 import './index.scss'
 import ReactQuill from 'react-quill-new'
 import 'react-quill-new/dist/quill.snow.css'
-import {  useState } from 'react'
-import { createArticleAPI } from '@/apis/article'
+import {  useEffect, useState } from 'react'
+import { createArticleAPI, getArticleDetailAPI, updateArticleAPI } from '@/apis/article'
 import { useChannel } from '@/hooks/useChannel'
 
 const { Option } = Select
@@ -30,9 +30,8 @@ const Publish = () => {
 
     // 2.发布文章
     const onFinish = async (formValue) => {
-        console.log(formValue)
-        if (imageType !== imageList.length) 
-            return message.warning('图片类型和数量不一致')
+        // console.log(formValue)
+        
         const { content, title, channel_id } = formValue
         const data = {
             title,
@@ -48,8 +47,16 @@ const Publish = () => {
             },
             channel_id,
         }
-        await createArticleAPI(data)
-        message.success('发布文章成功')
+        //校验图片类型是否一致
+        if (imageType !== imageList.length)
+            return message.warning('图片类型和数量不一致')
+        //编辑
+        if(articleId){
+            await updateArticleAPI(articleId,data)
+        }else{
+            await createArticleAPI(data)
+        }
+        message.success(`${articleId ? '编辑' : '发布'}文章成功`)
         navigate('/article')
     }
    
@@ -67,6 +74,33 @@ const Publish = () => {
         const type = e.target.value
         setImageType(type)    
     }
+
+    //5.编辑回填数据
+    const [searchParams] = useSearchParams()
+    const articleId = searchParams.get('id')
+    //获取表单实例
+    const [form] = Form.useForm()
+
+    useEffect(() => { 
+        const getArticleDetail = async () => { 
+            const res = await getArticleDetailAPI(articleId)
+            const {cover , ...formValue} = res.data
+            form.setFieldsValue({
+                ...formValue,
+                type:cover.type})
+            //回填图片数据(数据结构导致图片无法回填，手动处理一下)
+            setImageType(res.data.cover.type) //回填图片类型
+            //显示图片
+            setImageList(res.data.cover.images.map(url => {
+                return { url }
+            }))
+        }
+        //判断是否是编辑
+        if(articleId) {
+            getArticleDetail()
+        }
+    }, [articleId,form])
+    
    
     return (
         <div className="publish">
@@ -74,7 +108,7 @@ const Publish = () => {
                 title={
                     <Breadcrumb items={[
                         { title: <Link to={'/'}>首页</Link> },
-                        { title: '发布文章' },
+                        { title: `${articleId ? '编辑文章' : '发布文章'}` },
                     ]}
                     />
                 }
@@ -84,6 +118,7 @@ const Publish = () => {
                     wrapperCol={{ span: 16 }}
                     initialValues={{ type: 1 }}
                     onFinish={onFinish}
+                    form={form}
                 >
                     <Form.Item
                         label="标题"

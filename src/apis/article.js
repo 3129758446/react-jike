@@ -20,7 +20,7 @@ export const getArticleListAPI = (params) =>
         url: '/mp/articles',
         params
     })
-    
+
 //删除文章接口函数
 export const deleteArticleAPI = (id) => {
     return request({
@@ -28,3 +28,18 @@ export const deleteArticleAPI = (id) => {
         method: 'delete'
     })
 }
+
+//获取文章详情
+export const getArticleDetailAPI = (id) =>
+    request({
+        url: `/mp/articles/${id}`
+    })
+
+
+//更新文章
+export const updateArticleAPI = (id, data) =>
+    request({
+        url: `/mp/articles/${id}?draft=false`,
+        method: 'put',
+        data
+    })
